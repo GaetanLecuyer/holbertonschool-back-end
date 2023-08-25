@@ -1,54 +1,36 @@
 #!/usr/bin/python3
 """
-Write a Python script that, using this REST API, for a given employee ID\
+This module using a REST API for a given employee ID and
 returns information about his/her TODO list progress.
 """
+if __name__ == "__main__":
+    import requests
+    import sys
 
-import requests
-import sys
+    user_id = sys.argv[1]
+    url_users = "https://jsonplaceholder.typicode.com/users"
+    url_todos = "https://jsonplaceholder.typicode.com/todos"
 
+    response_users = requests.get(url_users)
+    response_todos = requests.get(url_todos)
+    users = response_users.json()
+    todos = response_todos.json()
 
-def fetch_employee_data(employee_id):
-    """
-    Fetches user data and todos data for a given employee ID from an API.
+    for user in users:
+        if user["id"] == int(user_id):
+            user_name = user["name"]
 
-    Args:
-        employee_id (int): The ID of the employee.
-    """
-    base_url = 'https://jsonplaceholder.typicode.com'
-    user_url = f'{base_url}/users/{employee_id}'
-    todos_url = f'{base_url}/todos?userId={employee_id}'
+    number_of_tasks = 0
+    number_of_completed_tasks = 0
+    tasks_completed = []
+    for todo in todos:
+        if todo["userId"] == int(user_id):
+            number_of_tasks += 1
+            if todo["completed"] is True:
+                number_of_completed_tasks += 1
+                tasks_completed.append(todo["title"])
 
-    user_response = requests.get(user_url)
-    todos_response = requests.get(todos_url)
-
-    user_data = user_response.json()
-    todos_data = todos_response.json()
-
-    return user_data, todos_data
-
-
-def main():
-    """
-    The main function is the entry point of the script.
-    It takes an employee ID as a command-line argument,
-    fetches user data and todos data for that employee from
-    an API using the fetch_employee_data function,
-    and then prints a summary of the employee's completed tasks.
-    """
-    employee_id = int(sys.argv[1])
-    user_data, todos_data = fetch_employee_data(employee_id)
-
-    EMPLOYEE_NAME = user_data['name']
-    TOTAL_NUMBER_OF_TASKS = len(todos_data)
-    NUMBER_OF_DONE_TASKS = sum(1 for task in todos_data if task['completed'])
-
-    print("Employee {} is done with tasks({}/{}):"
-          .format(EMPLOYEE_NAME, NUMBER_OF_DONE_TASKS, TOTAL_NUMBER_OF_TASKS))
-
-    for task in todos_data:
-        if task['completed']:
-            print(f'\t {task["title"]}')
-
-if __name__ == '__main__':
-    main()
+    print(f"Employee {user_name} is done with \
+tasks({number_of_completed_tasks}/{number_of_tasks}):")
+    for task in tasks_completed:
+        print(f"\t {task}")
